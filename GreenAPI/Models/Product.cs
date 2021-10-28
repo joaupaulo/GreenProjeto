@@ -9,7 +9,7 @@ namespace GreenAPI.Models
 {
     public class Product
     {
-        public long ProductId { get; set; }
+        public int ProductId { get; set; }
         public Category Category { get; set; }
        
         [Required]

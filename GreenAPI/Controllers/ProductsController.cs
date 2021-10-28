@@ -12,11 +12,11 @@ namespace GreenAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CProductsontroller : ControllerBase
+    public class ProductsController : ControllerBase
     {
         private readonly GreenStockContext _context;
 
-        public CProductsontroller(GreenStockContext context)
+        public ProductsController(GreenStockContext context)
         {
             _context = context;
         }
