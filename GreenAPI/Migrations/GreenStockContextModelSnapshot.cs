@@ -41,9 +41,9 @@ namespace GreenAPI.Migrations
 
             modelBuilder.Entity("GreenAPI.Models.Product", b =>
                 {
-                    b.Property<long>("ProductId")
+                    b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("int");
 
                     b.Property<int>("Amount")
                         .HasColumnType("int");

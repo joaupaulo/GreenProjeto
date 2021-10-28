@@ -1,22 +1,28 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
-using GreenAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using GreenMVC.Context;
+using GreenMVC.Models;
 
 namespace GreenMVC.Pages.ProductPages
 {
     public class EditModel : PageModel
     {
+        private readonly GreenMVC.Context.GreenStockContextMVC _context;
+
+        public EditModel(GreenMVC.Context.GreenStockContextMVC context)
+        {
+            _context = context;
+        }
+
         [BindProperty]
-        public Product Produto { get; set; }
-        string baseUrl = "https://localhost:44356/";
+        public Product Product { get; set; }
+
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
@@ -24,43 +30,48 @@ namespace GreenMVC.Pages.ProductPages
                 return NotFound();
             }
 
-            using (var client = new HttpClient())
+            Product = await _context.Product.FirstOrDefaultAsync(m => m.ProductId == id);
+
+            if (Product == null)
             {
-                client.BaseAddress = new Uri(baseUrl);
-                client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpResponseMessage response = await client.GetAsync("api/Produtos/" + id);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string result = response.Content.ReadAsStringAsync().Result;
-                    Produto = JsonConvert.DeserializeObject<Product>(result);
-                }
+                return NotFound();
             }
-
             return Page();
         }
 
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            using (var client = new HttpClient())
+            if (!ModelState.IsValid)
             {
-                client.BaseAddress = new Uri(baseUrl);
-                client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpResponseMessage response = await client
-                    .PutAsJsonAsync("api/Products/" + Produto.ProductId, Produto);
-                if (response.IsSuccessStatusCode)
+                return Page();
+            }
+
+            _context.Attach(Product).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProductExists(Product.ProductId))
                 {
-                    return RedirectToPage("./Index");
+                    return NotFound();
                 }
                 else
                 {
-                    return Page();
+                    throw;
                 }
             }
+
+            return RedirectToPage("./Index");
+        }
+
+        private bool ProductExists(int id)
+        {
+            return _context.Product.Any(e => e.ProductId == id);
         }
     }
 }

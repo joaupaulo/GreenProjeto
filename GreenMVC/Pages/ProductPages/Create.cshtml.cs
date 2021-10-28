@@ -1,43 +1,44 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
-using GreenAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using GreenMVC.Context;
+using GreenMVC.Models;
 
 namespace GreenMVC.Pages.ProductPages
 {
     public class CreateModel : PageModel
     {
-        [BindProperty]
-        public Product Produto { get; set; }
+        private readonly GreenMVC.Context.GreenStockContextMVC _context;
 
-        string baseUrl = "https://localhost:44356/";
+        public CreateModel(GreenMVC.Context.GreenStockContextMVC context)
+        {
+            _context = context;
+        }
+
+        public IActionResult OnGet()
+        {
+            return Page();
+        }
+
+        [BindProperty]
+        public Product Product { get; set; }
+
+        // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
         public async Task<IActionResult> OnPostAsync()
         {
-            using (var client = new HttpClient())
+            if (!ModelState.IsValid)
             {
-                client.BaseAddress = new Uri(baseUrl);
-                client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpResponseMessage response = await client
-                    .PostAsJsonAsync("api/Produtos", Produto);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    //Produtos/Index
-                    return RedirectToPage("./Index");
-                }
-                else
-                {
-                    return RedirectToPage("./Create");
-                }
+                return Page();
             }
+
+            _context.Product.Add(Product);
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage("./Index");
         }
     }
 }
